@@ -1,0 +1,7 @@
+image,true_grade,pred_grade
+a,0,0
+b,1,1
+c,2,1
+d,2,2
+e,0,1
+f,3,NE
