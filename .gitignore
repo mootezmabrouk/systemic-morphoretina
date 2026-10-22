@@ -5,4 +5,4 @@ data/
 outputs/
 .pytest_cache/
 .coverage
-.ipynb_checkpoints/
+.ipynb_checkpoints/*.egg-info/
