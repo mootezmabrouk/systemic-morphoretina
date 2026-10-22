@@ -52,6 +52,13 @@ def confusion_matrix_5x5(true_grades, pred_grades) -> np.ndarray:
         cm[int(t), int(p)] += 1
     return cm
 
+def confusion_matrix_5x6(true_grades, pred_grades) -> np.ndarray:
+    """Rows = true grade 0..4, columns = predicted 0..4 plus NE (column 5)."""
+    cm = np.zeros((5, 6), dtype=int)
+    for t, p in zip(true_grades, pred_grades):
+        cm[int(t), 5 if str(p).upper() == "NE" else int(p)] += 1
+    return cm
+
 
 def pixel_metrics(gt: np.ndarray, pred: np.ndarray) -> dict:
     return binary_metrics(gt.ravel(), pred.ravel())
@@ -70,6 +77,8 @@ def lesion_metrics(gt: np.ndarray, pred: np.ndarray) -> dict:
     return dict(n_gt=n_gt, n_pred=n_pr, recall=rec, precision=prec, f1=f1)
 
 
+
+
 def _main() -> None:
     import pandas as pd
 
@@ -79,18 +88,26 @@ def _main() -> None:
     a = ap.parse_args()
 
     df = pd.read_csv(a.csv, dtype={"pred_grade": str})
-    ne = df["pred_grade"].str.upper() == "NE"
-    print(f"Not evaluable (excluded): {int(ne.sum())} of {len(df)}")
-    df = df[~ne]
     t = df["true_grade"].astype(int).to_numpy()
-    p = df["pred_grade"].astype(int).to_numpy()
+    ne = (df["pred_grade"].str.upper() == "NE").to_numpy()
+    num = pd.to_numeric(df["pred_grade"], errors="coerce").to_numpy()
+    print(f"Not evaluable (NE): {int(ne.sum())} of {len(df)}")
 
+    # Primary: NE counts as a positive prediction (referral)
+    p = np.where(ne, 4, num).astype(int)
     m = grade_binary_metrics(t, p, a.threshold)
-    print(f"Threshold: grade >= {a.threshold}")
+    print(f"\nNE counted as positive, grade >= {a.threshold}")
     for k, v in m.items():
         print(f"  {k}: {v:.3f}" if isinstance(v, float) else f"  {k}: {v}")
-    print("Confusion matrix (rows true, cols predicted):")
-    print(confusion_matrix_5x5(t, p))
+
+    # Secondary: NE excluded (optimistic, report next to the primary)
+    m2 = grade_binary_metrics(t[~ne], num[~ne].astype(int), a.threshold)
+    print(f"\nNE excluded, grade >= {a.threshold}")
+    for k, v in m2.items():
+        print(f"  {k}: {v:.3f}" if isinstance(v, float) else f"  {k}: {v}")
+
+    print("\nConfusion matrix (rows true 0-4, cols predicted 0-4, NE):")
+    print(confusion_matrix_5x6(t, df["pred_grade"].tolist()))
 
 
 if __name__ == "__main__":

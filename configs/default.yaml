@@ -1,0 +1,10 @@
+version: "0.1.0"
+preprocessing:
+  clahe:
+    clip_limit: 2.0
+    tile_grid: [8, 8]
+  denoise:
+    n_orientations: 4
+    line_length: 5  
+scale:
+  d_ref: 1100   # PROVISIONAL: replace with the value measured on DIARETDB1
