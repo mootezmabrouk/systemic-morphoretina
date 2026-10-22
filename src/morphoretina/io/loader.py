@@ -1,4 +1,4 @@
-"""Image loading (EF-1) and DIARETDB1 dataset reader.
+"""Image loading (EF-1), IDRiD labels and DIARETDB1 dataset reader.
 
 Place at: src/morphoretina/io/loader.py
 """
@@ -8,8 +8,11 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import pandas as pd
 
 SUPPORTED = {".png", ".jpg", ".jpeg", ".dcm"}
+
+IDRID_DIR = Path("data/raw/idrid")
 
 # Lesion code -> ground-truth folder name in DIARETDB1 v1.1
 LESION_DIRS = {
@@ -65,6 +68,20 @@ def _read_gray(path: Path) -> np.ndarray:
     if m is None:
         raise ImageLoadError(f"Cannot decode mask: {path}")
     return m if m.ndim == 2 else m[..., 0]
+
+
+def load_idrid_labels(
+    csv_path: str | Path = IDRID_DIR / "idrid_labels.csv",
+    images_dir: str | Path = IDRID_DIR / "Imagenes",
+) -> pd.DataFrame:
+    """IDRiD grading labels: id_code, grade (0-4), edema_risk, path, exists."""
+    df = pd.read_csv(csv_path, usecols=[0, 1, 2])
+    df.columns = ["id_code", "grade", "edema_risk"]
+    df = df.dropna(subset=["id_code"]).reset_index(drop=True)
+    df["grade"] = df["grade"].astype(int)
+    df["path"] = df["id_code"].map(lambda i: Path(images_dir) / f"{i}.jpg")
+    df["exists"] = df["path"].map(lambda p: p.is_file())
+    return df
 
 
 class Diaretdb1:
