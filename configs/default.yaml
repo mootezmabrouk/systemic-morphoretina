@@ -7,4 +7,4 @@ preprocessing:
     n_orientations: 4
     line_length: 5  
 scale:
-  d_ref: 1100   # PROVISIONAL: replace with the value measured on DIARETDB1
+  d_ref: 1420    # PROVISIONAL: replace with the value measured on DIARETDB1

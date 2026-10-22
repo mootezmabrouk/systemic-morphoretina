@@ -22,10 +22,10 @@ LESION_DIRS = {
     "SE": "softexudates",
 }
 
-# Minimum mask value counted as lesion. Masks encode expert agreement
-# (steps of 63 for HE/EX/SE, 21 for MA). PROVISIONAL values: confirm
-# against doc/diaretdb1_techreport_v_1_1.pdf and move to configs/default.yaml.
-DEFAULT_THRESHOLDS = {"MA": 63, "HE": 189, "EX": 189, "SE": 189}
+# Mask value = sum of expert confidences (4 experts x 3 levels, 21 per level,
+# max 252). 189 = 75% of the max (mean confidence >= 75%). Confirm against
+# doc/diaretdb1_techreport_v_1_1.pdf.
+DEFAULT_THRESHOLDS = {"MA": 189, "HE": 189, "EX": 189, "SE": 189}
 
 
 class ImageLoadError(ValueError):
